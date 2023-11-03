@@ -1,8 +1,10 @@
 import numpy as np
 
-def relu(val):
-    return max(0,val)
+def relu(x):
+    return max(0,x)
 
-def sigmoid(val):
-    return 1/(1+np.exp(-val))
-    
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+def linear(x):
+    return x
