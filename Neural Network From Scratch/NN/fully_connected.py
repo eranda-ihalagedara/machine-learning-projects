@@ -1,4 +1,4 @@
-import Activations as act
+import NN.activations as act
 import numpy as np
 
 class Fully_Connected:
@@ -8,20 +8,21 @@ class Fully_Connected:
  
         if activation == 'ReLU':
             self.g = act.reLu
-        else if activation == 'Sigmoid':
+        elif activation == 'Sigmoid':
             self.g = act.sigmoid
         else :
             self.g = act.linear
     
     # Set input size to the layer and initilize the weight matrix and bias vector when building the a model
-    def build(self, size_in)
+    def build(self, size_in):
         self.size_in = size_in
         self.w = np.random.rand(self.size_out,self.size_in)
         self.b = np.random.rand(self.size_out,1)
     
     def forward_pass(self, a):
+        self.al_1 = a
         self.z = np.matmul(self.w, a) + self.b
-        return self.g(self.z))
+        return self.g(self.z)
 
     def backward_pass(self):
         pass
