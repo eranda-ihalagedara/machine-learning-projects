@@ -7,11 +7,14 @@ class Fully_Connected:
         self.size_out = size
  
         if activation == 'ReLU':
-            self.g = act.reLu
+            self.g = act.relu
+            self.g_prime = act.relu_prime
         elif activation == 'Sigmoid':
             self.g = act.sigmoid
+            self.g_prime = act.sigmoid_prime
         else :
             self.g = act.linear
+            self.g_prime = act.linear_prime
     
     # Set input size to the layer and initilize the weight matrix and bias vector when building the a model
     def build(self, size_in):
@@ -20,10 +23,16 @@ class Fully_Connected:
         self.b = np.random.rand(self.size_out,1)
     
     def forward_pass(self, a):
-        self.al_1 = a
+        self.a_l_munus_1 = a
         self.z = np.matmul(self.w, a) + self.b
         return self.g(self.z)
 
-    def backward_pass(self):
-        pass
+    def backward_pass(self, da_l):
+        self.dz = da_l*self.g_prime(self.z)
+        self.dw = np.matmul(self.dz,self.a_l_munus_1.T)
+        self.b = self.dz
+        return np.matmul(self.w.T, self.dz) # da_l_munus_1
+
+    def update_weights(self, learning_rate):
+        self.w -= learning_rate*self.dw
 
