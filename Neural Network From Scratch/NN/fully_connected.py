@@ -27,12 +27,13 @@ class Fully_Connected:
         self.z = np.matmul(self.w, a) + self.b
         return self.g(self.z)
 
-    def backward_pass(self, da_l):
+    def backward_pass(self, da_l, m=1):
         self.dz = da_l*self.g_prime(self.z)
-        self.dw = np.matmul(self.dz,self.a_l_munus_1.T)
-        self.b = self.dz
-        return np.matmul(self.w.T, self.dz) # da_l_munus_1
+        self.dw = np.matmul(self.dz,self.a_l_munus_1.T)/m
+        self.db = np.sum(self.dz, axis=1, keepdims=True)/m
+        return np.matmul(self.w.T, self.dz) # Return da_l_munus_1
 
     def update_weights(self, learning_rate):
         self.w -= learning_rate*self.dw
+        self.b -= learning_rate*self.db
 
