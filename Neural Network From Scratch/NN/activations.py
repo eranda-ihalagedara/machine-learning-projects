@@ -5,7 +5,7 @@ def relu(x):
 
 
 def relu_prime(x):
-    (x>=0).astype(int)
+    return (x>=0).astype(int)
 
 
 def sigmoid(x):
