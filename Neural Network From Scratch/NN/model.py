@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 class Model:
     # Set layers
@@ -23,6 +24,8 @@ class Model:
         self.losses = []
         
         for epoch in range(epochs):
+            steps = np.ceil(m/batch_size)
+            
             for i in range(0, m, batch_size):
                 x = x_train[:, i:min(i+batch_size,m)]
                 a_l = self.predict(x)
@@ -31,14 +34,18 @@ class Model:
                 da_l = a_l -  y_train[:, i:min(i+batch_size,m)]
 
                 # MSE
-                loss = np.sum(np.square(da_l))
+                loss = np.sum(np.square(da_l)).round()
                 self.losses.append(loss)
-                
-                print('epoch:', '\tstep:', i%batch_size,'\tloss:',loss)
-                
+            
                 for layer in list(reversed(self.layers)):
                     da_l = layer.backward_pass(da_l)
                     layer.update_weights(self.learning_rate)
+
+                # Progress bar
+                percent = np.round(50*((i/batch_size + 1)/steps)).astype(int)
+                print('epoch:', epoch+1,'='*percent + ' '*(50-percent), percent*2,'/',100,'\tloss:',loss, end='\r')
+                
+            print('')
 
         steps = np.arange(len(self.losses))
         plt.plot(steps, np.array(self.losses))
