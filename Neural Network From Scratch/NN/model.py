@@ -25,17 +25,18 @@ class Model:
         
         for epoch in range(epochs):
             steps = np.ceil(m/batch_size)
-            
+            loss = 0
             for i in range(0, m, batch_size):
                 x = x_train[:, i:min(i+batch_size,m)]
                 a_l = self.predict(x)
 
                 # For MSE as loss function
                 da_l = a_l -  y_train[:, i:min(i+batch_size,m)]
+                # Clip gradient values
+                da_l = np.maximum(-1e3,np.minimum(1e3, da_l))
 
                 # MSE
-                loss = np.sum(np.square(da_l)).round()
-                self.losses.append(loss)
+                loss = np.sum(np.square(da_l)).round()/da_l.shape[1]
             
                 for layer in list(reversed(self.layers)):
                     da_l = layer.backward_pass(da_l)
@@ -44,7 +45,8 @@ class Model:
                 # Progress bar
                 percent = np.round(50*((i/batch_size + 1)/steps)).astype(int)
                 print('epoch:', epoch+1,'='*percent + ' '*(50-percent), percent*2,'/',100,'\tloss:',loss, end='\r')
-                
+
+            self.losses.append(loss)
             print('')
 
         steps = np.arange(len(self.losses))
