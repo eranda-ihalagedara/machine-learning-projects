@@ -22,8 +22,8 @@ class Fully_Connected:
     def build(self, size_in, layer):
         self.layer_id=layer
         self.size_in = size_in
-        self.w = np.random.rand(self.size_out,self.size_in)
-        self.b = np.random.rand(self.size_out,1)
+        self.w = np.random.rand(self.size_out,self.size_in)-0.5
+        self.b = np.zeros([self.size_out,1])
 
     
     def forward_pass(self, a):
@@ -34,11 +34,13 @@ class Fully_Connected:
     
     def backward_pass(self, da_l):
         m = da_l.shape[1]
+           
         try:
-            self.dz = da_l*self.g_prime(self.z)
-            self.dw = np.matmul(self.dz,self.a_l_munus_1.T)/m
+            self.dz = da_l*self.g_prime(self.z)            
+            self.dw = self.dz @ self.a_l_munus_1.T /m
             self.db = np.sum(self.dz, axis=1, keepdims=True)/m
-            return np.matmul(self.w.T, self.dz) # Return da_l_munus_1
+
+            return self.w.T @ self.dz # Return da_l_munus_1
         
         except Exception as e:
             print('#Layer:', self.layer_id)
@@ -52,12 +54,15 @@ class Fully_Connected:
             
 
     def update_weights(self, learning_rate):
-        self.w -= learning_rate*self.dw
-        self.b -= learning_rate*self.db
+        # Weight update with gradient clipping
+        self.w -= learning_rate * np.maximum(-1e0,np.minimum(1e0, self.dw))
+        self.b -= learning_rate * np.maximum(-1e0,np.minimum(1e0, self.db))
 
         # Check if nan in weights
         if np.isnan(self.w).sum() == 1:
             print('Layer:', self.layer_id,'nan in W')
+            print('dw:', self.dw)
         if np.isnan(self.b).sum() == 1:
             print('Layer:', self.layer_id,'nan in b')
+            print('db:', self.db)
 
