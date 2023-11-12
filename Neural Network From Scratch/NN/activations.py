@@ -23,3 +23,8 @@ def linear(x):
 
 def linear_prime(x):
     return np.ones(x.shape)
+
+
+def softmax(x):
+    t = np.exp(x)
+    return t/sum(t)
