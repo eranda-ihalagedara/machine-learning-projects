@@ -4,16 +4,19 @@ from tqdm import tqdm
 
 class Model:
     # Set layers
-    def __init__(self, layers, learning_rate=0.0001, opt = 'gradient_desccent'):
+    def __init__(self, layers, learning_rate=0.0001, opt = 'gradient_desccent', lr_decay=1):
         self.layers = layers
         self.learning_rate = learning_rate
+        self.lr_decay = lr_decay
         self.opt = opt
         self.build()
 
     # Build each layer
     def build(self):
-        size_l = self.layers[0].size_out
+        size_l = self.layers[0].size_out if self.layers[0].size_in == None else self.layers[0].size_in
         self.layers[0].build(size_l,0)
+        size_l = self.layers[0].size_out
+        
         for i in range(1, len(self.layers)):
             self.layers[i].build(size_l, i)
             size_l = self.layers[i].size_out
@@ -48,6 +51,7 @@ class Model:
 
             self.losses.append(loss)
             print('')
+            self.learning_rate *= self.lr_decay
 
         steps = np.arange(len(self.losses))
         plt.plot(steps, np.array(self.losses))

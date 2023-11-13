@@ -4,19 +4,21 @@ import numpy as np
 class Fully_Connected:
     
     # Set initial paramters: size of the layer(size_out), activation function (linear by defaut)
-    def __init__(self, size = 1, activation='linear'):
+    def __init__(self, size = 1, activation='linear', input_size = None):
         self.size_out = size
+        self.size_in = input_size
  
-        if activation == 'ReLU':
+        if activation == 'relu':
             self.g = act.relu
             self.g_prime = act.relu_prime
-        elif activation == 'Sigmoid':
+        elif activation == 'sigmoid':
             self.g = act.sigmoid
             self.g_prime = act.sigmoid_prime
-        else :
+        elif activation == 'linear':
             self.g = act.linear
             self.g_prime = act.linear_prime
-
+        else:
+            raise Exception('\'' + str(activation) + '\' activation not found!')
             
     # Set input size to the layer and initialize the weight matrix and bias vector when building the model
     def build(self, size_in, layer):
