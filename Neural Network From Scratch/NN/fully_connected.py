@@ -3,7 +3,7 @@ import numpy as np
 
 class Fully_Connected:
     
-    # Set initial paramters: size of the layer(size_out), activation function (linear by defaut)
+    # Set initial paramters: size of the layer(size_out), activation function, input_size
     def __init__(self, size = 1, activation='linear', input_size = None):
         self.size_out = size
         self.size_in = input_size
@@ -55,10 +55,10 @@ class Fully_Connected:
             
             
 
-    def update_weights(self, learning_rate):
+    def update_weights(self, learning_rate, grad_clip = 1e0):
         # Weight update with gradient clipping
-        self.w -= learning_rate * np.maximum(-1e0,np.minimum(1e0, self.dw))
-        self.b -= learning_rate * np.maximum(-1e0,np.minimum(1e0, self.db))
+        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.dw))
+        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
 
         # Check if nan in weights
         if np.isnan(self.w).sum() == 1:
