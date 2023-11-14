@@ -7,5 +7,5 @@ def mse(a,y):
 
 def softmax_loss(a,y):
     dz = a - y
-    loss = -np.mean(np.sum(np.exp(a)*y, axis=0,keepdims=True))
+    loss = -np.mean(np.sum(np.log(a)*y, axis=0,keepdims=True))
     return loss, dz
