@@ -1,14 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import NN.losses as losses
+from .softmax import Softmax
+import logging
 
 class Model:
     # Set layers
-    def __init__(self, layers, learning_rate=0.0001, opt = 'gradient_desccent', lr_decay=1):
+    def __init__(self, layers, learning_rate=0.0001, opt = 'SGD', loss='mean_squared_error', lr_decay=1,):
         self.layers = layers
         self.learning_rate = learning_rate
         self.lr_decay = lr_decay
         self.opt = opt
+        self.loss_fn = self.get_loss_fn(loss)
         self.build()
 
     # Build each layer
@@ -20,6 +24,11 @@ class Model:
         for i in range(1, len(self.layers)):
             self.layers[i].build(size_l, i)
             size_l = self.layers[i].size_out
+
+        # Default to softmax loss of last layer is softmax
+        if isinstance(self.layers[-1], Softmax):
+            self.loss_fn = self.get_loss_fn('categorical_cross_entropy')
+            logging.warning('Defaulting to categorical_cross_entropy')
 
     # Train model
     def train(self, x_train, y_train, batch_size = 32, epochs = 1):
@@ -34,12 +43,14 @@ class Model:
                 a_l = self.predict(x)
 
                 # For MSE as loss function
-                da_l = a_l -  y_train[:, i:min(i+batch_size,m)]
+                # da_l = a_l -  y_train[:, i:min(i+batch_size,m)]
+                loss, da_l = self.loss_fn(a_l,y_train[:, i:min(i+batch_size,m)])
+                
                 # Clip gradient values
-                da_l = np.maximum(-1e3,np.minimum(1e3, da_l))
+                da_l = np.maximum(-1e6,np.minimum(1e6, da_l))
 
                 # MSE
-                loss = np.sum(np.square(da_l)).round()/da_l.shape[1]
+                # loss = np.sum(np.square(da_l)).round()/da_l.shape[1]
             
                 for layer in list(reversed(self.layers)):
                     da_l = layer.backward_pass(da_l)
@@ -62,5 +73,14 @@ class Model:
         for layer in self.layers:
             x = layer.forward_pass(x)
         return x
+
+    # Set loss function
+    def get_loss_fn(self, loss):
+        if loss.lower() == 'mean_squared_error':
+            return losses.mse
+        elif loss.lower() == 'categorical_cross_entropy':
+            return losses.softmax_loss
+        else :
+            raise Exception('\'' + str(loss) + '\' loss function not found!')
         
         
