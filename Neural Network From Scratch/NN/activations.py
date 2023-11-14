@@ -26,5 +26,10 @@ def linear_prime(x):
 
 
 def softmax(x):
-    t = np.exp(x)
-    return t/sum(t)
+
+    # For numerical stability the max value of each vector is subtracted from all the elements
+    z = x - np.max(x,axis=0,keepdims=True)
+    ex = np.exp(z)
+    sm = np.sum(ex, axis=0, keepdims=True)
+    
+    return ex/sm
