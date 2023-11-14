@@ -7,5 +7,8 @@ def mse(a,y):
 
 def softmax_loss(a,y):
     dz = a - y
-    loss = -np.mean(np.sum(np.log(a)*y, axis=0,keepdims=True))
+    # For numerical stability of log calculation, near-zero values are brought up to a small value - epsilon
+    epsilon = 1e-10
+    loss = -np.mean(np.sum(np.log(np.maximum(a, epsilon))*y, axis=0,keepdims=True))
+    
     return loss, dz
