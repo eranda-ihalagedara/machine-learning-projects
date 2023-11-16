@@ -33,11 +33,11 @@ class Model:
     # Train model
     def train(self, x_train, y_train, batch_size = 32, epochs = 1):
         m = x_train.shape[1]
-        self.losses = []
+        steps = np.ceil(m/batch_size)
+        self.metrics_list = {}
         
         for epoch in range(epochs):
-            steps = np.ceil(m/batch_size)
-            loss = 0
+            
             for i in range(0, m, batch_size):
                 x = x_train[:, i:min(i+batch_size,m)]
                 a_l = self.predict(x)
@@ -49,23 +49,42 @@ class Model:
                 # Clip gradient values
                 da_l = np.maximum(-1e6,np.minimum(1e6, da_l))
 
-                # MSE
-                # loss = np.sum(np.square(da_l)).round()/da_l.shape[1]
-            
                 for layer in list(reversed(self.layers)):
                     da_l = layer.backward_pass(da_l)
                     layer.update_weights(self.learning_rate)
 
                 # Progress bar
-                percent = np.round(50*((i/batch_size + 1)/steps)).astype(int)
-                print('epoch:', epoch+1,'='*percent + ' '*(50-percent), percent*2,'/',100,'\tloss:',loss, end='\r')
+                percent = np.round(50*((i//batch_size + 1)/steps),2)
+                
+                if percent*2 < 100 :
+                    end_char = '\r'
+                else:
+                    end_char = ' '
+                    
+                print('epoch:', epoch+1,'='*percent.astype(int) + ' '*(50-percent.astype(int)), percent*2,'/',100, end=end_char)
 
-            self.losses.append(loss)
-            print('')
+            # Print metrics
+            metrics = self.get_metrics(x_train, y_train)
+            metrics_str = ''
+            for key, value in metrics.items():
+                metrics_str += '\t'+ key +': ' + str(value) + ' '
+                self.metrics_list[key] = self.metrics_list.get(key, []) + [value]
+            print(metrics_str)
+
+            # Update learning rate
             self.learning_rate *= self.lr_decay
 
-        steps = np.arange(len(self.losses))
-        plt.plot(steps, np.array(self.losses))
+        # Plot metrics
+        n_metrics = len(self.metrics_list.keys())
+        
+        for idx, key in enumerate(self.metrics_list):
+            steps = np.arange(len(self.metrics_list[key]))
+            ax = plt.subplot(n_metrics, 1, idx+1)
+            ax.plot(steps, np.array(self.metrics_list[key]))
+            ax.set_title(key, y=0.85)
+            ax.grid(True)
+
+        plt.xlabel('epoch')
         plt.show()
 
     # Predict - forward pass through each layer
@@ -82,5 +101,26 @@ class Model:
             return losses.softmax_loss
         else :
             raise Exception('\'' + str(loss) + '\' loss function not found!')
+
+    # Get metrics
+    def get_metrics(self, x, y):
         
+        y_hat = self.predict(x)
+        dy = y_hat-y
+        
+        if self.loss_fn.__name__ == 'mse':
+            mse = np.mean(np.sum(np.square(dy), axis=0,keepdims=True))
+            return {'loss': mse
+                   }
+        elif self.loss_fn.__name__ == 'softmax_loss':
+            epsilon = 1e-10
+            loss = -np.mean(np.sum(np.log(np.maximum(y_hat, epsilon))*y, axis=0,keepdims=True))
+            acc = (np.argmax(y_hat, axis=0) == np.argmax(y, axis=0)).mean()
+
+            return {
+                'loss': loss.round(8),
+                'accuracy': acc.round(4)
+            }
+        else:
+            raise Exception('Loss function \''+self.loss_fn.__name__+'\' not found!')
         
