@@ -61,10 +61,9 @@ class Fully_Connected:
         self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
 
         # Check if nan in weights
-        if np.isnan(self.w).sum() == 1:
+        if np.isnan(self.w).sum() == 1 | np.isnan(self.b).sum() == 1:
+            print('')
             print('Layer:', self.layer_id,'nan in W')
             print('dw:', self.dw)
-        if np.isnan(self.b).sum() == 1:
-            print('Layer:', self.layer_id,'nan in b')
-            print('db:', self.db)
-
+            raise Exception('Weights are nan!')
+        

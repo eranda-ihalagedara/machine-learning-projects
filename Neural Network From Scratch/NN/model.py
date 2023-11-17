@@ -13,10 +13,11 @@ class Model:
         self.lr_decay = lr_decay
         self.opt = opt
         self.loss_fn = self.get_loss_fn(loss)
-        self.build()
 
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)
+
+        self.build()
 
     # Build each layer
     def build(self):
@@ -35,6 +36,10 @@ class Model:
 
     # Train model
     def train(self, x_train, y_train, batch_size = 32, epochs = 1, cv = None):
+
+        # Check paramters
+        self.parameter_check(x_train, y_train, batch_size, epochs, cv)
+        
         m = x_train.shape[1]
         steps = np.ceil(m/batch_size)
         self.metrics_list = {}
@@ -151,3 +156,36 @@ class Model:
             raise Exception(f"Loss function '{self.loss_fn.__name__}' not found!")
 
         return metrics
+
+
+    def parameter_check(self, x_train, y_train, batch_size, epochs, cv):
+        err_msg = ''
+
+        if (type(x_train) is not np.ndarray or type(y_train) is not np.ndarray):
+            err_msg += '** `x_train` and `y_train` should be `numpy.ndarray` type'
+
+        else:
+            if x_train.shape[1] != y_train.shape[1]:
+                err_msg += '** Number of records in x_train and y_train do not match!. Make sure x_train -> (n,m), y_train -> (k,m) in shape as numpy.ndarray type where `m` is the number or records in the training set\n' 
+            
+            if cv is not None:
+                if (type(cv) is not tuple and type(cv) is not list):
+                    err_msg += '** `cv` should be of type tuple or list. cv: [x_cv, y_cv] which contains cross-validation set.\n'
+                else:
+                    if cv[0].shape[1] != cv[1].shape[1]:
+                        err_msg += '** Number of records in `cv` do not match!. Make sure cv: [x_cv, y_cv],  x_cv -> (n,m), y_cv -> (k,m) in shape where `m` is the number or records in the cross-validation set.\n' 
+                    
+                    if cv[0].shape[0] != x_train.shape[0]:
+                        err_msg += '** Number of features in x_train and cv[0] do not match!.\n'
+    
+
+        if batch_size < 1:
+            err_msg += '** `batch_size` should be an integer greater than or equal to 1'
+
+        if epochs < 1:
+            err_msg += '** `epochs` should be an integer greater than or equal to 1'
+
+        
+        if err_msg != '':
+            raise Exception(f"Parameter ERROR! \n{err_msg}")
+            
