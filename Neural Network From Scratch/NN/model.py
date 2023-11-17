@@ -15,6 +15,9 @@ class Model:
         self.loss_fn = self.get_loss_fn(loss)
         self.build()
 
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.INFO)
+
     # Build each layer
     def build(self):
         size_l = self.layers[0].size_out if self.layers[0].size_in == None else self.layers[0].size_in
@@ -28,10 +31,10 @@ class Model:
         # Default to softmax loss of last layer is softmax
         if isinstance(self.layers[-1], Softmax):
             self.loss_fn = self.get_loss_fn('categorical_cross_entropy')
-            logging.warning('Defaulting to categorical_cross_entropy')
+            self.logger.info('Defaulting to categorical_cross_entropy')
 
     # Train model
-    def train(self, x_train, y_train, batch_size = 32, epochs = 1):
+    def train(self, x_train, y_train, batch_size = 32, epochs = 1, cv = None):
         m = x_train.shape[1]
         steps = np.ceil(m/batch_size)
         self.metrics_list = {}
@@ -42,9 +45,7 @@ class Model:
                 x = x_train[:, i:min(i+batch_size,m)]
                 a_l = self.predict(x)
 
-                # For MSE as loss function
-                # da_l = a_l -  y_train[:, i:min(i+batch_size,m)]
-                loss, da_l = self.loss_fn(a_l,y_train[:, i:min(i+batch_size,m)])
+                _, da_l = self.loss_fn(a_l,y_train[:, i:min(i+batch_size,m)])
                 
                 # Clip gradient values
                 da_l = np.maximum(-1e6,np.minimum(1e6, da_l))
@@ -61,14 +62,18 @@ class Model:
                 else:
                     end_char = ' '
                     
-                print('epoch:', epoch+1,'='*percent.astype(int) + ' '*(50-percent.astype(int)), percent*2,'/',100, end=end_char)
+                print('epoch:', epoch+1,'='*percent.astype(int) + ' '*(50-percent.astype(int)),
+                      '{:.2f}'.format(percent*2),'/',100,
+                      end=end_char)
 
             # Print metrics
-            metrics = self.get_metrics(x_train, y_train)
+            metrics = self.get_metrics(x_train, y_train, cv)
             metrics_str = ''
             for key, value in metrics.items():
-                metrics_str += '\t'+ key +': ' + str(value) + ' '
-                self.metrics_list[key] = self.metrics_list.get(key, []) + [value]
+                metrics_str += '\t'+ key +': ' + '{:.4f}'.format(value['train']) + ' '
+                self.metrics_list[key] = self.metrics_list.get(key, dict())
+                for k, v in value.items():
+                    self.metrics_list[key][k] = self.metrics_list[key].get(k, []) + [v]
             print(metrics_str)
 
             # Update learning rate
@@ -78,11 +83,15 @@ class Model:
         n_metrics = len(self.metrics_list.keys())
         
         for idx, key in enumerate(self.metrics_list):
-            steps = np.arange(len(self.metrics_list[key]))
+            steps = np.arange(len(self.metrics_list[key]['train']))
             ax = plt.subplot(n_metrics, 1, idx+1)
-            ax.plot(steps, np.array(self.metrics_list[key]))
+            
+            for set_name, values in self.metrics_list[key].items():
+                ax.plot(steps, np.array(values), label = set_name)
+                
             ax.set_title(key, y=0.85)
             ax.grid(True)
+            ax.legend()
 
         plt.xlabel('epoch')
         plt.show()
@@ -103,24 +112,42 @@ class Model:
             raise Exception('\'' + str(loss) + '\' loss function not found!')
 
     # Get metrics
-    def get_metrics(self, x, y):
+    def get_metrics(self, x_train, y_train, cv = None):
         
-        y_hat = self.predict(x)
-        dy = y_hat-y
+        pred_train = self.predict(x_train)
+        delta_train = pred_train-y_train
+        if cv is not None:
+            x_cv, y_cv = cv
+            pred_cv = self.predict(x_cv)
+            delta_cv = pred_cv - y_cv
+            
+        metrics = {}
         
         if self.loss_fn.__name__ == 'mse':
-            mse = np.mean(np.sum(np.square(dy), axis=0,keepdims=True))
-            return {'loss': mse
-                   }
-        elif self.loss_fn.__name__ == 'softmax_loss':
-            epsilon = 1e-10
-            loss = -np.mean(np.sum(np.log(np.maximum(y_hat, epsilon))*y, axis=0,keepdims=True))
-            acc = (np.argmax(y_hat, axis=0) == np.argmax(y, axis=0)).mean()
+            mse_train = np.mean(np.sum(np.square(delta_train), axis=0,keepdims=True))
+            metrics['loss'] = {'train': mse_train}
+            if cv is not None:
+                metrics['loss']['cv'] = np.mean(np.sum(np.square(delta_cv), axis=0,keepdims=True))
 
-            return {
-                'loss': loss.round(8),
-                'accuracy': acc.round(4)
-            }
+        elif self.loss_fn.__name__ == 'softmax_loss':
+            # For numerical stability of log calculation, near-zero values are brought up to a small value - epsilon
+            epsilon = 1e-10
+            log_train = np.log(np.maximum(pred_train, epsilon))
+            loss_train = -np.mean(np.sum(log_train * y_train, axis=0,keepdims=True))
+            acc_train = (np.argmax(pred_train, axis=0) == np.argmax(y_train, axis=0)).mean()
+
+            metrics['loss'] = {'train': loss_train}
+            metrics['accuracy'] = {'train': acc_train}
+            
+            if cv is not None:
+                log_cv = np.log(np.maximum(pred_cv, epsilon))
+                loss_cv = -np.mean(np.sum(log_cv * y_cv, axis=0,keepdims=True))
+                acc_cv = (np.argmax(pred_cv, axis=0) == np.argmax(y_cv, axis=0)).mean()
+
+                metrics['loss']['cv'] = loss_cv
+                metrics['accuracy']['cv'] = acc_cv
+
         else:
-            raise Exception('Loss function \''+self.loss_fn.__name__+'\' not found!')
-        
+            raise Exception(f"Loss function '{self.loss_fn.__name__}' not found!")
+
+        return metrics
