@@ -2,9 +2,25 @@ import NN.activations as act
 import numpy as np
 
 class Fully_Connected:
+    """
+    A class representing a fully connected neural network layer.
     
-    # Set initial paramters: size of the layer(size_out), activation function, input_size
+    """
+
+    
     def __init__(self, size = 1, activation='linear', input_size = None):
+        """
+        Initializes a Fully_Connected layer with the specified size, activation function, and input size.
+        
+        Parameters:
+        - size: int, default: 1
+            The number of neurons in the layer.
+        - activation: str, optional, default: 'linear'
+            The activation function to be used in the layer.
+        - input_size: int, optional, default: None
+            The size of the input to the layer.
+
+        """
         self.size_out = size
         self.size_in = input_size
  
@@ -20,43 +36,82 @@ class Fully_Connected:
         else:
             raise Exception('\'' + str(activation) + '\' activation not found!')
             
-    # Set input size to the layer and initialize the weight matrix and bias vector when building the model
-    def build(self, size_in, layer):
-        self.layer_id=layer
+   
+    def build(self, size_in, layer_id):
+        """
+        Set input size to the layer and initialize the weight matrix and bias vector when building the model.
+
+        Parameters:
+        - size_in: int
+            The size of the input to the layer
+        - layer_id: int
+            The id of the layer
+
+        Returns:
+        None
+        
+        """
+        self.layer_id=layer_id
         self.size_in = size_in
         self.w = np.random.rand(self.size_out,self.size_in)-0.5
         self.b = np.zeros([self.size_out,1])
 
     
-    def forward_pass(self, a):
-        self.a_l_munus_1 = a
-        self.z = np.matmul(self.w, a) + self.b
+    def forward_pass(self, a_l_munus_1):
+        """
+         Perform a forward pass through the layer.
+        
+        Parameters:
+        - a_l_munus_1: numpy.ndarray
+            The input to the layer from the layer before.
+
+        Returns:
+        - numpy.ndarray
+            The output of the layer after applying the activation function to the transformed input with weights and bias.
+            
+        """
+        self.a_l_munus_1 = a_l_munus_1
+        self.z = np.matmul(self.w, a_l_munus_1) + self.b
         return self.g(self.z)
 
     
     def backward_pass(self, da_l):
+        """
+        Perform a backward pass through the layer.
+
+        Parameters:
+        - da_l: numpy.ndarray
+            The gradient of the loss with respect to the layer's output.
+
+        Returns:
+        - numpy.ndarray
+            The gradient of the loss with respect to the layer's input (da_l_minus_1).
+            
+        """
         m = da_l.shape[1]
            
-        try:
-            self.dz = da_l*self.g_prime(self.z)            
-            self.dw = self.dz @ self.a_l_munus_1.T /m
-            self.db = np.sum(self.dz, axis=1, keepdims=True)/m
+        self.dz = da_l*self.g_prime(self.z)            
+        self.dw = self.dz @ self.a_l_munus_1.T /m
+        self.db = np.sum(self.dz, axis=1, keepdims=True)/m
 
-            return self.w.T @ self.dz # Return da_l_munus_1
+        return self.w.T @ self.dz # Return da_l_munus_1
+
+            
+
+    def update_weights(self, learning_rate, grad_clip = 1):
+        """
+        Update the weights of the layer using gradient descent with optional gradient clipping.
+
+        Parameters:
+        - learning_rate: float between 0 and 1
+            The learning rate for the gradient descent.
+        - grad_clip: float, default: 1
+            The threshold value for gradient clipping.
+
+        Returns:
+        None
         
-        except Exception as e:
-            print('#Layer:', self.layer_id)
-            print(e)
-            print('w:', self.w.shape, 'wT:', self.w.T.shape)
-            print('z:', self.z.shape)
-            print('g_prime:', self.g_prime)
-            print('dz:', self.dz.shape)
-            print('da_l:', da_l.shape)
-            
-            
-
-    def update_weights(self, learning_rate, grad_clip = 1e0):
-        # Weight update with gradient clipping
+        """
         self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.dw))
         self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
 

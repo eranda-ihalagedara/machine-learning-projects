@@ -6,12 +6,28 @@ from .softmax import Softmax
 import logging
 
 class Model:
-    # Set layers
-    def __init__(self, layers, learning_rate=0.0001, opt = 'SGD', loss='mean_squared_error', lr_decay=1,):
+    """
+    A class representing a neural network model.
+
+    """
+    def __init__(self, layers, learning_rate=0.0001, loss='mean_squared_error', lr_decay=1,):
+        """
+        Initializes a Model with the specified layers, learning rate, loss function, and learning rate decay.
+        Parameters:
+            - layers: list
+                A list containing the layers of the model. Each list element should be an instance of any of the followings
+                    - Fully_Connected
+                    - Softmax
+            - learning_rate: float, optional, default: 0.0001
+                The learning rate for training the model.
+            - loss: 'mean_squared_error' or 'categorical_cross_entropy', optional, default: 'mean_squared_error'
+                The loss function to be used during training.
+            - lr_decay: float between 0 and 1, optional, default: 1
+                The learning rate decay factor.
+        """
         self.layers = layers
         self.learning_rate = learning_rate
         self.lr_decay = lr_decay
-        self.opt = opt
         self.loss_fn = self.get_loss_fn(loss)
 
         self.logger = logging.getLogger()
@@ -19,8 +35,11 @@ class Model:
 
         self.build()
 
-    # Build each layer
+    
     def build(self):
+        """
+         Build each layer in the model. Defaults to softmax loss if the last layer is softmax.
+        """
         size_l = self.layers[0].size_out if self.layers[0].size_in == None else self.layers[0].size_in
         self.layers[0].build(size_l,0)
         size_l = self.layers[0].size_out
@@ -36,7 +55,24 @@ class Model:
 
     # Train model
     def train(self, x_train, y_train, batch_size = 32, epochs = 1, cv = None):
+        """
+        Train the model using the specified training data.
 
+        Parameters:
+        - x_train: numpy.ndarray
+            The input training data in shape (n,m) where m is the number of records/samples
+        - y_train: numpy.ndarray
+            The target training data in shape (k,m) where m is the number of records/samples
+        - batch_size: int, optional, default: 32
+            The batch size for training.
+        - epochs: int, optional, default: 1
+            The number of training epochs.
+        - cv: tuple or list : (numpy.ndarray, numpy.ndarray), optional, default: None
+            Cross-validation set for validation. Should be in the order - (x_cv, y_cv)
+
+        Returns:
+        None
+        """
         # Check paramters
         self.parameter_check(x_train, y_train, batch_size, epochs, cv)
         
@@ -103,12 +139,33 @@ class Model:
 
     # Predict - forward pass through each layer
     def predict(self, x):
+        """
+        Perform a forward pass through each layer to make predictions.
+
+        Parameters:
+        - x: numpy.ndarray
+            The input data in shape (n,m) where m is the number of records/samples
+
+        Returns:
+        - numpy.ndarray
+            The model's predictions.
+        """
         for layer in self.layers:
             x = layer.forward_pass(x)
         return x
 
     # Set loss function
     def get_loss_fn(self, loss):
+        """
+        Set the loss function for the model.
+
+        Parameters:
+        - loss: 'mean_squared_error' or 'categorical_cross_entropy'
+            The loss function to be used during training.
+
+        Returns:
+        - Loss function: mse or softmax_loss
+        """
         if loss.lower() == 'mean_squared_error':
             return losses.mse
         elif loss.lower() == 'categorical_cross_entropy':
@@ -118,6 +175,21 @@ class Model:
 
     # Get metrics
     def get_metrics(self, x_train, y_train, cv = None):
+        """
+        Calculate metrics based on the model's performance.
+
+        Parameters:
+        - x_train: numpy.ndarray
+            The input training data.
+        - y_train: numpy.ndarray
+            The target training data.
+        - cv: tuple or list, default: None
+            Cross-validation set for validation.
+
+        Returns:
+        - dict
+            A dictionary containing various metrics.
+        """
         
         pred_train = self.predict(x_train)
         delta_train = pred_train-y_train
@@ -159,6 +231,9 @@ class Model:
 
 
     def parameter_check(self, x_train, y_train, batch_size, epochs, cv):
+        """
+        Check and validate the parameters passed for training the model.
+        """
         err_msg = ''
 
         if (type(x_train) is not np.ndarray or type(y_train) is not np.ndarray):
