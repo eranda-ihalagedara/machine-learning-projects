@@ -23,7 +23,8 @@ class Model:
             - loss: 'mean_squared_error' or 'categorical_cross_entropy', optional, default: 'mean_squared_error'
                 The loss function to be used during training.
             - lr_decay: float between 0 and 1, optional, default: 1
-                The learning rate decay factor.
+                The learning rate decay is expenential. In each epoch learning rate will update as:
+                learning_rate = learning_rate * lr_decay.
         """
         self.layers = layers
         self.learning_rate = learning_rate
