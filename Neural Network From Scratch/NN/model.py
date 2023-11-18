@@ -15,7 +15,7 @@ class Model:
         Initializes a Model with the specified layers, learning rate, loss function, and learning rate decay.
         Parameters:
             - layers: list
-                A list containing the layers of the model. Each list element should be an instance of any of the followings
+                A list containing the layers of the model. Each list element should be an instance of any of the following
                     - Fully_Connected
                     - Softmax
             - learning_rate: float, optional, default: 0.0001
@@ -23,7 +23,7 @@ class Model:
             - loss: 'mean_squared_error' or 'categorical_cross_entropy', optional, default: 'mean_squared_error'
                 The loss function to be used during training.
             - lr_decay: float between 0 and 1, optional, default: 1
-                The learning rate decay is expenential. In each epoch learning rate will update as:
+                The learning rate decay is exponential. In each epoch learning rate will update as:
                 learning_rate = learning_rate * lr_decay.
         """
         self.layers = layers
