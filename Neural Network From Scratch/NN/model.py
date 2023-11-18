@@ -89,7 +89,7 @@ class Model:
 
                 _, da_l = self.loss_fn(a_l,y_train[:, i:min(i+batch_size,m)])
                 
-                # Clip gradient values
+                # Gradient values are clipped to be between -1e6 and 1e6 to avoid overflow during matrix mulitplications
                 da_l = np.maximum(-1e6,np.minimum(1e6, da_l))
 
                 for layer in list(reversed(self.layers)):

@@ -20,7 +20,7 @@ model = nn.Model([
     nn.Fully_Connected(32, 'relu', input_size=784),
     nn.Fully_Connected(64, 'relu'),
     nn.Fully_Connected(64, 'relu'),
-    nn.Softmax(10, 'linear')
+    nn.Softmax(10)
 ], learning_rate=0.01, lr_decay=0.995)
 
 model.train(X_train,y_train, epochs=50)
@@ -30,7 +30,7 @@ model.predict(X_test)
 **Important: Before building a model, make sure the input(X_train) and labels(y_train) are `numpy.ndarray`s of shapes (n,m) and (k,m) where `m` is the number of records or samples in the training set. In other words, features should be in rows and each sample should be in columns. Reshape your data accordingly, otherwise this would not provide intended results**
 
 ## Example  
-You can view an example Jupyter Notebook [here]() where it goes through building a neural network model and train on the MNIST dataset.
+You can view an example Jupyter Notebook [here](https://github.com/eranda-ihalagedara/machine-learning-projects/blob/main/Neural%20Network%20From%20Scratch/Example-1_MNIST_Classification.ipynb) where it goes through building a neural network model and train on the MNIST dataset.
 
 ## References
 
