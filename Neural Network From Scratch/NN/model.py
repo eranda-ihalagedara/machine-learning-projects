@@ -20,7 +20,7 @@ class Model:
                     - Softmax
             - learning_rate: float, optional, default: 0.0001
                 The learning rate for training the model.
-            - loss: 'mean_squared_error' or 'categorical_cross_entropy', optional, default: 'mean_squared_error'
+            - loss: 'mean_squared_error' or 'cross_entropy', optional, default: 'mean_squared_error'
                 The loss function to be used during training.
             - lr_decay: float between 0 and 1, optional, default: 1
                 The learning rate decay is exponential. In each epoch learning rate will update as:
@@ -51,8 +51,8 @@ class Model:
 
         # Default to softmax loss of last layer is softmax
         if isinstance(self.layers[-1], Softmax):
-            self.loss_fn = self.get_loss_fn('categorical_cross_entropy')
-            self.logger.info('Defaulting to categorical_cross_entropy')
+            self.loss_fn = self.get_loss_fn('cross_entropy')
+            self.logger.info('Defaulting to cross_entropy')
 
     # Train model
     def train(self, x_train, y_train, batch_size = 32, epochs = 1, cv = None):
@@ -161,7 +161,7 @@ class Model:
         Set the loss function for the model.
 
         Parameters:
-        - loss: 'mean_squared_error' or 'categorical_cross_entropy'
+        - loss: 'mean_squared_error' or 'cross_entropy'
             The loss function to be used during training.
 
         Returns:
@@ -169,7 +169,7 @@ class Model:
         """
         if loss.lower() == 'mean_squared_error':
             return losses.mse
-        elif loss.lower() == 'categorical_cross_entropy':
+        elif loss.lower() == 'cross_entropy':
             return losses.softmax_loss
         else :
             raise Exception('\'' + str(loss) + '\' loss function not found!')
