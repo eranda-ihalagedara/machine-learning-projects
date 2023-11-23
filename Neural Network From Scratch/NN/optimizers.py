@@ -7,15 +7,13 @@ class rmsprop:
         self.sdb = np.zeros(b_shape)
 
     
-    def get_dw_opt(self, dw, t):
+    def get_dw_opt(self, dw):
         self.sdw = self.beta*self.sdw + (1-self.beta)*dw**2
-        self.sdw /=(1-self.beta**t) 
         return dw/np.sqrt(self.sdw)
     
 
-    def get_db_opt(self, db, t):
+    def get_db_opt(self, db):
         self.sdb = self.beta*self.sdb + (1-self.beta)*db**2
-        self.sdb /=(1-self.beta**t)
         return db/np.sqrt(self.sdb)
     
 

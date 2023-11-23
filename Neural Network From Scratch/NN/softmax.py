@@ -1,4 +1,5 @@
 import NN.activations as act
+import NN.optimizers as optimizers
 import numpy as np
 
 class Softmax:
@@ -23,7 +24,7 @@ class Softmax:
         self.g = act.softmax
 
         
-    def build(self, size_in, layer_id):
+    def build(self, size_in, layer_id, opt):
         """
         Set input size to the layer and initialize the weight matrix and bias vector when building the model.
 
@@ -32,6 +33,8 @@ class Softmax:
             The size of the input to the layer
         - layer_id: int
             The id of the layer
+        - opt: str
+            The optimizer
 
         Returns:
         None
@@ -41,6 +44,8 @@ class Softmax:
         self.size_in = size_in
         self.w = np.random.rand(self.size_out,self.size_in)-0.5
         self.b = np.zeros([self.size_out,1])
+
+        self.opt = self.get_optimizer(opt)
 
     
     def forward_pass(self, a_l_munus_1):
@@ -96,8 +101,11 @@ class Softmax:
         None
         
         """
-        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.dw))
-        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
+        dw_opt = self.opt.get_dw_opt(self.dw)
+        db_opt = self.opt.get_db_opt(self.db)
+
+        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, dw_opt))
+        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, db_opt))
 
         # Check if nan in weights
         if np.isnan(self.w).sum() == 1:
@@ -106,3 +114,12 @@ class Softmax:
         if np.isnan(self.b).sum() == 1:
             print('Layer:', self.layer_id,'nan in b')
             print('db:', self.db)
+
+
+    def get_optimizer(self, opt):
+        if opt == 'rmsprop':
+            return optimizers.rmsprop(w_shape=self.w.shape, b_shape=self.b.shape)
+        elif opt == 'adam':
+            return optimizers.adam(w_shape=self.w.shape, b_shape=self.b.shape)
+        else:
+            raise Exception('\'' + str(opt) + '\' optimizer not found!')

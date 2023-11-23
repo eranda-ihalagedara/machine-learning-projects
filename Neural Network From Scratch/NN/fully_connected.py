@@ -1,4 +1,5 @@
 import NN.activations as act
+import NN.optimizers as optimizers
 import numpy as np
 
 class Fully_Connected:
@@ -23,21 +24,10 @@ class Fully_Connected:
         """
         self.size_out = size
         self.size_in = input_size
- 
-        if activation == 'relu':
-            self.g = act.relu
-            self.g_prime = act.relu_prime
-        elif activation == 'sigmoid':
-            self.g = act.sigmoid
-            self.g_prime = act.sigmoid_prime
-        elif activation == 'linear':
-            self.g = act.linear
-            self.g_prime = act.linear_prime
-        else:
-            raise Exception('\'' + str(activation) + '\' activation not found!')
-            
+        self.set_activation(activation)
+                   
    
-    def build(self, size_in, layer_id):
+    def build(self, size_in, layer_id, opt):
         """
         Set input size to the layer and initialize the weight matrix and bias vector when building the model.
 
@@ -46,6 +36,8 @@ class Fully_Connected:
             The size of the input to the layer
         - layer_id: int
             The id of the layer
+        - opt: str
+            The optimizer
 
         Returns:
         None
@@ -55,6 +47,8 @@ class Fully_Connected:
         self.size_in = size_in
         self.w = np.random.rand(self.size_out,self.size_in)-0.5
         self.b = np.zeros([self.size_out,1])
+        
+        self.opt = self.get_optimizer(opt)
 
     
     def forward_pass(self, a_l_munus_1):
@@ -112,8 +106,11 @@ class Fully_Connected:
         None
         
         """
-        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.dw))
-        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
+        dw_opt = self.opt.get_dw_opt(self.dw)
+        db_opt = self.opt.get_db_opt(self.db)
+
+        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, dw_opt))
+        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, db_opt))
 
         # Check if nan in weights
         if np.isnan(self.w).sum() == 1 | np.isnan(self.b).sum() == 1:
@@ -122,3 +119,25 @@ class Fully_Connected:
             print('dw:', self.dw)
             raise Exception('Weights are nan!')
         
+
+    def get_optimizer(self, opt):
+        if opt == 'rmsprop':
+            return optimizers.rmsprop(w_shape=self.w.shape, b_shape=self.b.shape)
+        elif opt == 'adam':
+            return optimizers.adam(w_shape=self.w.shape, b_shape=self.b.shape)
+        else:
+            raise Exception('\'' + str(opt) + '\' optimizer not found!')
+        
+    
+    def set_activation(self, activation):
+        if activation == 'relu':
+            self.g = act.relu
+            self.g_prime = act.relu_prime
+        elif activation == 'sigmoid':
+            self.g = act.sigmoid
+            self.g_prime = act.sigmoid_prime
+        elif activation == 'linear':
+            self.g = act.linear
+            self.g_prime = act.linear_prime
+        else:
+            raise Exception('\'' + str(activation) + '\' activation not found!')
