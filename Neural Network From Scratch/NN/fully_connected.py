@@ -92,14 +92,14 @@ class Fully_Connected:
 
             
 
-    def update_weights(self, learning_rate, grad_clip = 2):
+    def update_weights(self, learning_rate, grad_clip = 1):
         """
         Update the weights of the layer using gradient descent with optional gradient clipping.
 
         Parameters:
         - learning_rate: float between 0 and 1
             The learning rate for the gradient descent.
-        - grad_clip: float, default: 2
+        - grad_clip: float, default: 1
             The threshold value for gradient clipping.
 
         Returns:

@@ -11,7 +11,7 @@ class rmsprop:
         self.sdw = self.beta*self.sdw + (1-self.beta)*dw**2
 
         # For numerical stability
-        epsilon = 1e-8
+        epsilon = 1e-10
         return dw/np.sqrt(self.sdw + epsilon)
     
 
