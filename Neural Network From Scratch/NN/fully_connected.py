@@ -24,7 +24,20 @@ class Fully_Connected:
         """
         self.size_out = size
         self.size_in = input_size
-        self.set_activation(activation)
+
+        if activation == 'relu':
+            self.g = act.relu
+            self.g_prime = act.relu_prime
+        elif activation == 'sigmoid':
+            self.g = act.sigmoid
+            self.g_prime = act.sigmoid_prime
+        elif activation == 'linear':
+            self.g = act.linear
+            self.g_prime = act.linear_prime
+        else:
+            raise Exception('\'' + str(activation) + '\' activation not found!')
+
+        # self.set_activation(activation)
                    
    
     def build(self, size_in, layer_id, opt):
@@ -48,7 +61,7 @@ class Fully_Connected:
         self.w = np.random.rand(self.size_out,self.size_in)-0.5
         self.b = np.zeros([self.size_out,1])
         
-        self.opt = optimizers.get_optimizer(opt)
+        # self.opt = optimizers.get_optimizer(opt)
 
     
     def forward_pass(self, a_l_munus_1):
@@ -106,11 +119,17 @@ class Fully_Connected:
         None
         
         """
-        dw_opt = self.opt.get_dw_opt(self.dw)
-        db_opt = self.opt.get_db_opt(self.db)
+        # dw_opt = self.opt.get_dw_opt(self.dw)
+        # db_opt = self.opt.get_db_opt(self.db)
 
-        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, dw_opt))
-        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, db_opt))
+        # if not (dw_opt == self.dw).all():
+        #     print('dw mismatch')
+        
+        # if not (db_opt == self.db).all():
+        #     print('db mismatch')
+
+        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.dw))
+        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
 
         # Check if nan in weights
         if np.isnan(self.w).sum() == 1 | np.isnan(self.b).sum() == 1:
