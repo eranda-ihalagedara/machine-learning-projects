@@ -45,7 +45,7 @@ class Model:
          Build each layer in the model. Defaults to cross_entropy loss if the last layer is Softmax.
         """
         size_l = self.layers[0].size_out if self.layers[0].size_in == None else self.layers[0].size_in
-        self.layers[0].build(size_l,0)
+        self.layers[0].build(size_l,0, self.opt)
         size_l = self.layers[0].size_out
         
         for i in range(1, len(self.layers)):
