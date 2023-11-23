@@ -41,6 +41,8 @@ class Model:
         """
          Build each layer in the model. Defaults to softmax loss if the last layer is softmax.
         """
+        np.random.seed(42)
+        
         size_l = self.layers[0].size_out if self.layers[0].size_in == None else self.layers[0].size_in
         self.layers[0].build(size_l,0)
         size_l = self.layers[0].size_out
