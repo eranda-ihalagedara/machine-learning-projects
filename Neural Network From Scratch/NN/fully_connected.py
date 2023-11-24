@@ -24,20 +24,7 @@ class Fully_Connected:
         """
         self.size_out = size
         self.size_in = input_size
-
-        if activation == 'relu':
-            self.g = act.relu
-            self.g_prime = act.relu_prime
-        elif activation == 'sigmoid':
-            self.g = act.sigmoid
-            self.g_prime = act.sigmoid_prime
-        elif activation == 'linear':
-            self.g = act.linear
-            self.g_prime = act.linear_prime
-        else:
-            raise Exception('\'' + str(activation) + '\' activation not found!')
-
-        # self.set_activation(activation)
+        self.set_activation(activation)
                    
    
     def build(self, size_in, layer_id, opt):
