@@ -44,8 +44,7 @@ class Softmax:
         self.size_in = size_in
         self.w = np.random.rand(self.size_out,self.size_in)-0.5
         self.b = np.zeros([self.size_out,1])
-
-        # self.opt = optimizers.get_optimizer(opt)
+        self.opt = optimizers.get_optimizer(opt, self.w.shape, self.b.shape)
 
     
     def forward_pass(self, a_l_munus_1):
@@ -87,7 +86,7 @@ class Softmax:
         return self.w.T @ self.dz # Return da_l_munus_1
     
             
-    def update_weights(self, learning_rate, grad_clip = 1):
+    def update_weights(self, learning_rate, grad_clip = 10):
         """
         Update the weights of the layer using gradient descent with optional gradient clipping.
 
@@ -101,17 +100,11 @@ class Softmax:
         None
         
         """
-        # dw_opt = self.opt.get_dw_opt(self.dw)
-        # db_opt = self.opt.get_db_opt(self.db)
+        dw_opt = self.opt.get_dw_opt(self.dw)
+        db_opt = self.opt.get_db_opt(self.db)
 
-        # if not (dw_opt == self.dw).all():
-        #     print('dw mismatch')
-        
-        # if not (db_opt == self.db).all():
-        #     print('db mismatch')
-
-        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.dw))
-        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, self.db))
+        self.w -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, dw_opt))
+        self.b -= learning_rate * np.maximum(-grad_clip,np.minimum(grad_clip, db_opt))
 
         # Check if nan in weights
         if np.isnan(self.w).sum() == 1:

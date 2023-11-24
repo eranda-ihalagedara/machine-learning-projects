@@ -35,11 +35,11 @@ class adam:
         pass
 
 
-def get_optimizer(opt):
+def get_optimizer(opt, w_shape, b_shape):
         if opt == 'rmsprop':
-            return rmsprop(w_shape=self.w.shape, b_shape=self.b.shape)
+            return rmsprop(w_shape, b_shape)
         elif opt == 'adam':
-            return adam(w_shape=self.w.shape, b_shape=self.b.shape)
+            return adam(w_shape, b_shape)
         elif opt == 'sgd':
             return sgd()
         else:
