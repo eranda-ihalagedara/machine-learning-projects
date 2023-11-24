@@ -10,7 +10,7 @@ class Model:
     A class representing a neural network model.
 
     """
-    def __init__(self, layers, learning_rate=0.0001, loss='mean_squared_error', lr_decay=1,):
+    def __init__(self, layers, learning_rate=0.0001, loss='mean_squared_error', lr_decay=1, opt = 'rmsprop'):
         """
         Initializes a Model with the specified layers, learning rate, loss function, and learning rate decay.
         Parameters:
@@ -25,11 +25,14 @@ class Model:
             - lr_decay: float between 0 and 1, optional, default: 1
                 The learning rate decay is exponential. In each epoch learning rate will update as:
                 learning_rate = learning_rate * lr_decay.
+            - opt: str, default: 'rmsprop'
+                The optimizer
         """
         self.layers = layers
         self.learning_rate = learning_rate
         self.lr_decay = lr_decay
         self.loss_fn = self.get_loss_fn(loss)
+        self.opt = opt
 
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)
@@ -39,16 +42,16 @@ class Model:
     
     def build(self):
         """
-         Build each layer in the model. Defaults to softmax loss if the last layer is softmax.
+         Build each layer in the model. Defaults to cross_entropy loss if the last layer is Softmax.
         """
         np.random.seed(42)
-        
+
         size_l = self.layers[0].size_out if self.layers[0].size_in == None else self.layers[0].size_in
-        self.layers[0].build(size_l,0)
+        self.layers[0].build(size_l,0, self.opt)
         size_l = self.layers[0].size_out
         
         for i in range(1, len(self.layers)):
-            self.layers[i].build(size_l, i)
+            self.layers[i].build(size_l, i, self.opt)
             size_l = self.layers[i].size_out
 
         # Default to softmax loss of last layer is softmax
@@ -82,7 +85,7 @@ class Model:
         m = x_train.shape[1]
         steps = np.ceil(m/batch_size)
         self.metrics_list = {}
-        
+     
         for epoch in range(epochs):
             
             for i in range(0, m, batch_size):
@@ -123,6 +126,7 @@ class Model:
             # Update learning rate
             self.learning_rate *= self.lr_decay
 
+
         # Plot metrics
         n_metrics = len(self.metrics_list.keys())
         
@@ -140,6 +144,7 @@ class Model:
         plt.xlabel('epoch')
         plt.show()
 
+
     # Predict - forward pass through each layer
     def predict(self, x):
         """
@@ -156,6 +161,7 @@ class Model:
         for layer in self.layers:
             x = layer.forward_pass(x)
         return x
+
 
     # Set loss function
     def get_loss_fn(self, loss):
@@ -175,6 +181,7 @@ class Model:
             return losses.softmax_loss
         else :
             raise Exception('\'' + str(loss) + '\' loss function not found!')
+
 
     # Get metrics
     def get_metrics(self, x_train, y_train, cv = None):
