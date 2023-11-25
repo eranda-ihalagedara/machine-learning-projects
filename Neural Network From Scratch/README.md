@@ -38,7 +38,7 @@ You can view an example Jupyter Notebook [here](https://github.com/eranda-ihalag
 2. [Improving Deep Neural Networks](https://www.youtube.com/watch?v=1waHlpKiNyY&list=PLkDaE6sCZn6Hn0vK8co82zjQtt3T2Nkqc&ab_channel=DeepLearningAI) by Andrew Ng  
 3. [Derivative of the Softmax Function and the Categorical Cross-Entropy Loss](https://towardsdatascience.com/derivative-of-the-softmax-function-and-the-categorical-cross-entropy-loss-ffceefc081d1) by Thomas Kurbiel
 4. [The Softmax function and its derivative](https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/) by  Eli Bendersky
-
+5. [How to update interactive figure in loop with JupyterLab](https://stackoverflow.com/a/65400928/14640684) on stackoverflow by [BlackHC](https://stackoverflow.com/users/854731/blackhc)
 
 
 ## Disclaimer:  
