@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 import NN.losses as losses
 from .softmax import Softmax
 import logging
+from IPython.display import clear_output
 
 class Model:
     """
@@ -87,6 +87,24 @@ class Model:
         self.metrics_list = {}
      
         for epoch in range(epochs):
+
+            # Plot metrics
+            clear_output(wait=True)
+            n_metrics = len(self.metrics_list.keys())
+            
+            for idx, key in enumerate(self.metrics_list):
+                step_list = np.arange(len(self.metrics_list[key]['train']))
+                ax = plt.subplot(n_metrics, 1, idx+1)
+                
+                for set_name, values in self.metrics_list[key].items():
+                    ax.plot(step_list, np.array(values), label = set_name)
+                    
+                ax.set_title(key, y=0.85)
+                ax.grid(True)
+                ax.legend()
+            plt.xlabel('epoch')
+
+            plt.show()
             
             for i in range(0, m, batch_size):
                 x = x_train[:, i:min(i+batch_size,m)]
@@ -126,23 +144,8 @@ class Model:
             # Update learning rate
             self.learning_rate *= self.lr_decay
 
-
-        # Plot metrics
-        n_metrics = len(self.metrics_list.keys())
         
-        for idx, key in enumerate(self.metrics_list):
-            steps = np.arange(len(self.metrics_list[key]['train']))
-            ax = plt.subplot(n_metrics, 1, idx+1)
-            
-            for set_name, values in self.metrics_list[key].items():
-                ax.plot(steps, np.array(values), label = set_name)
-                
-            ax.set_title(key, y=0.85)
-            ax.grid(True)
-            ax.legend()
-
-        plt.xlabel('epoch')
-        plt.show()
+        
 
 
     # Predict - forward pass through each layer
