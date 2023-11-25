@@ -82,30 +82,16 @@ class Model:
         # Check paramters
         self.parameter_check(x_train, y_train, batch_size, epochs, cv)
         
+        # Initialize metrics and plots
         m = x_train.shape[1]
         steps = np.ceil(m/batch_size)
         self.metrics_list = {}
      
+        fig = plt.figure()
+        dsp = display(display_id=True)
+
         for epoch in range(epochs):
 
-            # Plot metrics
-            clear_output(wait=True)
-            n_metrics = len(self.metrics_list.keys())
-            
-            for idx, key in enumerate(self.metrics_list):
-                step_list = np.arange(len(self.metrics_list[key]['train']))
-                ax = plt.subplot(n_metrics, 1, idx+1)
-                
-                for set_name, values in self.metrics_list[key].items():
-                    ax.plot(step_list, np.array(values), label = set_name)
-                    
-                ax.set_title(key, y=0.85)
-                ax.grid(True)
-                ax.legend()
-            plt.xlabel('epoch')
-
-            plt.show()
-            
             for i in range(0, m, batch_size):
                 x = x_train[:, i:min(i+batch_size,m)]
                 a_l = self.predict(x)
@@ -120,33 +106,20 @@ class Model:
                     layer.update_weights(self.learning_rate)
 
                 # Progress bar
-                percent = np.round(50*((i//batch_size + 1)/steps),2)
-                
-                if percent*2 < 100 :
-                    end_char = '\r'
-                else:
-                    end_char = ' '
-                    
-                print('epoch:', epoch+1,'='*percent.astype(int) + ' '*(50-percent.astype(int)),
-                      '{:.2f}'.format(percent*2),'/',100,
-                      end=end_char)
-
+                self.print_progress(epoch, i, batch_size, steps)
+ 
             # Print metrics
             metrics = self.get_metrics(x_train, y_train, cv)
-            metrics_str = ''
-            for key, value in metrics.items():
-                metrics_str += '\t'+ key +': ' + '{:.4f}'.format(value['train']) + ' '
-                self.metrics_list[key] = self.metrics_list.get(key, dict())
-                for k, v in value.items():
-                    self.metrics_list[key][k] = self.metrics_list[key].get(k, []) + [v]
-            print(metrics_str)
+            self.print_metrics(metrics)
+
+            # Plot metrics
+            self.plot_metrics(fig, dsp)
 
             # Update learning rate
             self.learning_rate *= self.lr_decay
 
+        plt.close(fig)
         
-        
-
 
     # Predict - forward pass through each layer
     def predict(self, x):
@@ -276,4 +249,54 @@ class Model:
         
         if err_msg != '':
             raise Exception(f"Parameter ERROR! \n{err_msg}")
+        
+
+    def print_progress(self, epoch, i, batch_size, steps):
+        """
+        Print progress bar
+        """
+        percent = np.round(50*((i//batch_size + 1)/steps),2)
+                
+        if percent*2 < 100 :
+            end_char = '\r'
+        else:
+            end_char = ' '
+            
+        print('epoch:', epoch+1,'='*percent.astype(int) + ' '*(50-percent.astype(int)),
+                '{:.2f}'.format(percent*2),'/',100,
+                end=end_char)
+
+    def print_metrics(self, metrics):
+        """
+        Print metrics of each epoch
+        """
+        metrics_str = ''
+        for key, value in metrics.items():
+            metrics_str += '\t'+ key +': ' + '{:.4f}'.format(value['train']) + ' '
+            self.metrics_list[key] = self.metrics_list.get(key, dict())
+            for k, v in value.items():
+                self.metrics_list[key][k] = self.metrics_list[key].get(k, []) + [v]
+        print(metrics_str)
+
+    def plot_metrics(self, fig, dsp):
+        """
+        Plot and update metrics on each epoch
+        """
+        plt.clf()
+        n_metrics = len(self.metrics_list.keys())
+        
+        for idx, key in enumerate(self.metrics_list):
+            step_list = np.arange(len(self.metrics_list[key]['train']))
+            ax = plt.subplot(n_metrics, 1, idx+1)
+
+            for set_name, values in self.metrics_list[key].items():
+                ax.plot(step_list, np.array(values), label = set_name)
+                
+            ax.set_title(key, y=0.85)
+            ax.grid(True)
+            ax.legend()
+        plt.xlabel('epoch')
+
+        fig.canvas.draw()
+        dsp.update(fig)
             
