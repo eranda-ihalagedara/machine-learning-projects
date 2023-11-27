@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 import NN.losses as losses
 from .softmax import Softmax
 import logging
-from IPython.display import clear_output
+from IPython.display import display
 
 class Model:
     """
     A class representing a neural network model.
 
     """
-    def __init__(self, layers, learning_rate=0.0001, loss='mean_squared_error', lr_decay=1, opt = 'rmsprop'):
+    def __init__(self, layers, learning_rate=0.0001, loss='mean_squared_error', lr_decay=1, opt = 'sgd'):
         """
         Initializes a Model with the specified layers, learning rate, loss function, and learning rate decay.
         Parameters:
@@ -20,16 +20,16 @@ class Model:
                     - Softmax
             - learning_rate: float, optional, default: 0.0001
                 The learning rate for training the model.
-            - loss: 'mean_squared_error' or 'cross_entropy', optional, default: 'mean_squared_error'
+            - loss: str, 'mean_squared_error' or 'cross_entropy', optional, default: 'mean_squared_error'
                 The loss function to be used during training.
             - lr_decay: float between 0 and 1, optional, default: 1
                 The learning rate decay is exponential. In each epoch learning rate will update as:
                 learning_rate = learning_rate * lr_decay.
-            - opt: str, default: 'rmsprop'
-                The optimizer
+            - opt: str, 'sgd' or 'rmsprop', default: 'sgd'
+                The optimizer. Possible values: 
         """
         self.layers = layers
-        self.learning_rate = learning_rate
+        self.learning_rate_init = learning_rate
         self.lr_decay = lr_decay
         self.loss_fn = self.get_loss_fn(loss)
         self.opt = opt
@@ -84,9 +84,11 @@ class Model:
         m = x_train.shape[1]
         steps = np.ceil(m/batch_size)
         self.metrics_list = {}
-     
+        learning_rate = self.learning_rate_init
+
         fig = plt.figure()
         dsp = display(display_id=True)
+        
 
         for epoch in range(epochs):
 
@@ -96,12 +98,12 @@ class Model:
 
                 _, da_l = self.loss_fn(a_l,y_train[:, i:min(i+batch_size,m)])
                 
-                # Gradient values are clipped to be between -1e6 and 1e6 to avoid overflow during matrix mulitplications
+                # Gradient values are clipped to be between -1e6 and 1e6 to avoid overflow during matrix multiplications
                 da_l = np.maximum(-1e6,np.minimum(1e6, da_l))
 
                 for layer in list(reversed(self.layers)):
                     da_l = layer.backward_pass(da_l)
-                    layer.update_weights(self.learning_rate)
+                    layer.update_weights(learning_rate)
 
                 # Progress bar
                 self.print_progress(epoch, i, batch_size, steps)
@@ -114,7 +116,7 @@ class Model:
             self.plot_metrics(fig, dsp)
 
             # Update learning rate
-            self.learning_rate *= self.lr_decay
+            learning_rate = learning_rate * self.lr_decay
 
         plt.close(fig)
         
