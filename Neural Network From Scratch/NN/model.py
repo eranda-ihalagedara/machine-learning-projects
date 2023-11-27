@@ -25,7 +25,7 @@ class Model:
             - lr_decay: float between 0 and 1, optional, default: 1
                 The learning rate decay is exponential. In each epoch learning rate will update as:
                 learning_rate = learning_rate * lr_decay.
-            - opt: str, 'sgd' or 'rmsprop', default: 'sgd'
+            - opt: str, 'sgd' or 'rmsprop' or 'adam', default: 'sgd'
                 The optimizer. Possible values: 
         """
         self.layers = layers
