@@ -21,10 +21,18 @@ model = nn.Model([
     nn.Fully_Connected(64, 'relu'),
     nn.Fully_Connected(64, 'relu'),
     nn.Softmax(10)
-], learning_rate=0.01, lr_decay=0.995)
+], learning_rate=0.001, lr_decay=0.995)
 
-model.train(X_train,y_train, epochs=50)
+model.train(X_train,y_train, epochs=100)
+```
+You can see the progress in a chart.  
 
+<img src="img/chart.gif"
+     alt="Learning Chart"
+     height="300px" />
+
+- Predict using the model  
+```
 model.predict(X_test)
 ```
 **Important: Before building a model, make sure the input(X_train) and labels(y_train) are `numpy.ndarray`s of shapes (n,m) and (k,m) where `m` is the number of records or samples in the training set. In other words, features should be in rows and each sample should be in columns. Reshape your data accordingly, otherwise this would not provide intended results**
